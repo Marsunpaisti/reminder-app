@@ -1,49 +1,39 @@
 // @refresh state
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, ActivityIndicator } from "react-native";
-import * as firebase from "firebase";
-
+import { StyleSheet, Text, View, Button } from "react-native";
+import { Provider } from "react-redux";
+import { ReactReduxFirebaseProvider } from "react-redux-firebase";
+import store from "./redux/store";
+import firebase from "firebase/app";
+import "firebase/auth";
 import firebaseConfig from "./firebaseconfig";
-import LoginLogoutForm from "./components/LoginLogoutForm";
+import LoginWidget from "./components/LoginWidget";
 
-if (firebase.apps.length === 0) {
-	firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
+
+const rrfProps = {
+	firebase,
+	config: {},
+	dispatch: store.dispatch,
+};
 
 export default function App() {
-	const [isLoggedIn, setLoggedIn] = useState(undefined);
-	useEffect(() => {
-		const listener = firebase.auth().onAuthStateChanged((user) => {
-			if (user) {
-				setLoggedIn(true);
-				console.log("Authenticated as " + user.email);
-			} else {
-				setLoggedIn(false);
-				console.log("Signed out");
-			}
-		});
-
-		return listener;
-	}, []);
-
 	const test = async () => {
 		console.log("Test!");
 	};
 
 	return (
-		<View style={styles.container}>
-			{isLoggedIn === undefined ? (
-				<ActivityIndicator color="#55AAFF" size="large" />
-			) : (
-				<>
-					<LoginLogoutForm isLoggedIn={isLoggedIn} />
+		<Provider store={store}>
+			<ReactReduxFirebaseProvider {...rrfProps}>
+				<View style={styles.container}>
+					<LoginWidget />
 					<Text>Testbutton!</Text>
 					<Button title="Test" onPress={test} />
 					<StatusBar style="auto" />
-				</>
-			)}
-		</View>
+				</View>
+			</ReactReduxFirebaseProvider>
+		</Provider>
 	);
 }
 
